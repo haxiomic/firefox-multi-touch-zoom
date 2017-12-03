@@ -1,12 +1,8 @@
 /**
  # Todo before release
- ! Fix google maps willChange causes problems!
  ! Support meta max/min scale
  - Lazy setup, attach listeners and whatnot only when first used
  - Fix broken pages
-
- # Doneish
- - Handle out-of-scroll bounds
 
  **/
 
