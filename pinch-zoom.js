@@ -1,21 +1,33 @@
 /**
- # Todo before release
- ! Support meta max/min scale
+ # Other ideas
  - Lazy setup, attach listeners and whatnot only when first used
- - Fix broken pages
+ - Potentially even smoother zoom with non-zero transition duration
+ 	- This requires decoupling translation from scroll
+ 	- Which means we have to have a convert-to-scroll method when the transition is complete
 
  **/
 
 // elements
-let page = document.documentElement;
-let container = document.documentElement;
-let scrollHandleElement = window;
+let pageElement = document.documentElement;
+let scrollBoxElement = document.documentElement; // this is the scroll-box
+let wheelEventElement = document.documentElement;
+let scrollEventElement = window;
 
-// view scaling parameters
+let quirksMode = document.compatMode === 'BackCompat';
+
+// if the pageElement is missing a doctype or the doctype is set to < HTML 4.01 then Firefox renders in quirks mode
+// we cannot use the scroll fields on the <html> element, instead we must use the body
+// "(quirks mode bug 211030) The scrollLeft, scrollTop, scrollWidth, and scrollHeight properties are relative to BODY in quirks mode (instead of HTML)."
+if (quirksMode) {
+	scrollBoxElement = document.body;
+}
+
+// view scaling parameters and other options
+const zoomSpeed = 0.015;
+const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
+const shiftKeyZoom = true;// enable zoom with shift + scroll
 const minScale = 1.0;
 const maxScale = 10;
-const zoomSpeed = 0.015;
-const scaleMode = 1; //0 = always high quality, 1 = low-quality while zooming
 // state
 let pageScale = 1;
 let translationX = 0;
@@ -23,14 +35,10 @@ let translationY = 0;
 let overflowTranslationX = 0;
 let overflowTranslationY = 0;
 
-// page.style.willChange = 'transform';
+// browser-hint optimization - I found this causes issues with some sites like maps.google.com
+// pageElement.style.willChange = 'transform';
 
-// @! debug
-// container.addEventListener(`click`, (e) => {
-// 	scaleMode = scaleMode === 0?1:0;
-// 	console.log('scale mode is', scaleMode);
-// });
-
+// we track the state of the ctrl key in order to distinguish mouse-wheel events from pinch gestures
 let realCtrlDown = false;
 let updateRealCtrl = (e) => realCtrlDown = e.ctrlKey;
 window.addEventListener(`keydown`, updateRealCtrl);
@@ -40,54 +48,34 @@ window.addEventListener(`mousemove`, updateRealCtrl);
 // cmd + 0 to restore zoom
 window.addEventListener('keydown', (e) => {
 	if (e.key == '0' && e.metaKey) {
-		// reset state
-		pageScale = 1;
-		translationX = 0;
-		translationY = 0;
-		overflowTranslationX = 0;
-		overflowTranslationY = 0;
-
-		let scrollLeftBefore = container.scrollLeft;
-		let scrollLeftMaxBefore = container.scrollMax;
-		let scrollTopBefore = container.scrollTop;
-		let scrollTopMaxBefore = container.scrollTopMax;
-		updateTransform(0, false);
-
-		// restore scroll
-		container.scrollLeft = (scrollLeftBefore/scrollLeftMaxBefore) * container.scrollLeftMax;
-		container.scrollTop = (scrollTopBefore/scrollTopMaxBefore) * container.scrollTopMax;
-
-		updateTranslationFromScroll();
-
-		// undo other css changes
-		page.style.overflow = '';
-		document.body.style.pointerEvents = '';
+		resetScale();
 	}
 });
 
 // because scroll top/left are handled as integers only, we only read the translation from scroll once scroll has changed
+// if we didn't, our translation would have ugly precision issues => setTranslationX(4.5) -> translationX = 4
 let ignoredScrollLeft = null;
 let ignoredScrollTop = null;
 function updateTranslationFromScroll(){
-	if (container.scrollLeft !== ignoredScrollLeft) {
-		translationX = -container.scrollLeft;
+	if (scrollBoxElement.scrollLeft !== ignoredScrollLeft) {
+		translationX = -scrollBoxElement.scrollLeft;
 		ignoredScrollLeft = null;
 	}
-	if (container.scrollTop !== ignoredScrollTop) {
-		translationY = -container.scrollTop;
+	if (scrollBoxElement.scrollTop !== ignoredScrollTop) {
+		translationY = -scrollBoxElement.scrollTop;
 		ignoredScrollTop = null;
 	}
 }
-scrollHandleElement.addEventListener(`scroll`, updateTranslationFromScroll);
+scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
 
-container.addEventListener(`wheel`, (e) => {
+wheelEventElement.addEventListener(`wheel`, (e) => {
 	// when pinching, Firefox will set the 'ctrlKey' flag to true, even when ctrl is not pressed
 	// we can use this fact to distinguish between scrolling and pinching
 	let firefoxPseudoPinch = e.ctrlKey && !realCtrlDown;
-	if (firefoxPseudoPinch) {
-		let x = e.clientX - container.offsetLeft;
-		let y = e.clientY - container.offsetTop;
-		// x in non-scrolling, non-transformed coordinates relative to the container
+	if (firefoxPseudoPinch || (e.shiftKey && shiftKeyZoom)) {
+		let x = e.clientX - scrollBoxElement.offsetLeft;
+		let y = e.clientY - scrollBoxElement.offsetTop;
+		// x in non-scrolling, non-transformed coordinates relative to the scrollBoxElement
 		// 0 is always the left side and <width> is always the right side
 
 		let newScale = pageScale + e.deltaY * zoomSpeed;
@@ -102,8 +90,8 @@ container.addEventListener(`wheel`, (e) => {
 	}
 }, false);
 
-container.addEventListener(`mousemove`, restoreControl);
-container.addEventListener(`mousedown`, restoreControl);
+scrollBoxElement.addEventListener(`mousemove`, restoreControl);
+scrollBoxElement.addEventListener(`mousedown`, restoreControl);
 
 let qualityHandle = null;
 let overflowHandle = null;
@@ -113,16 +101,16 @@ let _savedPointerEvents = null;
 let controlDisabled = false;
 function disableControl() {
 	// disable scrolling for performance
-	page.style.overflow = 'hidden';
-	document.body.style.pointerEvents = 'none';
+	pageElement.style.overflow = 'hidden';
+	// document.body.style.pointerEvents = 'none';
 	controlDisabled = true;
 }
 
 function restoreControl() {
 	if (!controlDisabled) return;
 	// scrolling must be enable for panning
-	page.style.overflow = 'scroll';
-	document.body.style.pointerEvents = '';
+	pageElement.style.overflow = 'scroll';
+	// document.body.style.pointerEvents = '';
 	controlDisabled = false;
 }
 
@@ -135,12 +123,12 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 
 	if (sm === 0) {
 		// scaleX/scaleY
-		page.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
 	} else {
 		// perspective (reduced quality but faster)
 		let p = 1; // what's the best value here?
 		let z = p - p/pageScale;
-		page.style.transform = `perspective(${p}px) translateZ(${z}px)`;
+		pageElement.style.transform = `perspective(${p}px) translateZ(${z}px)`;
 
 		// wait a short period before restoring the quality
 		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
@@ -148,26 +136,26 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 		const highQualityWait_ms = 40;
 		window.clearTimeout(qualityHandle);
 		qualityHandle = setTimeout(function(){
-			page.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+			pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
 		}, highQualityWait_ms);
 	}
 
-	page.style.transformOrigin = `0 0`;
+	pageElement.style.transformOrigin = `0 0`;
 
 	// hack to restore normal behavior that's upset after applying the transform
-	page.style.position = `relative`;
-	page.style.height = `100%`;
+	pageElement.style.position = `relative`;
+	pageElement.style.height = `100%`;
 
 	// when translation is positive, the offset is applied via left/top positioning
 	// negative translation is applied via scroll
 	if (minScale < 1) {
-		page.style.left = `${Math.max(translationX, 0) - overflowTranslationX}px`;
-		page.style.top = `${Math.max(translationY, 0) - overflowTranslationY}px`;
+		pageElement.style.left = `${Math.max(translationX, 0) - overflowTranslationX}px`;
+		pageElement.style.top = `${Math.max(translationY, 0) - overflowTranslationY}px`;
 	}
 
 	// weird performance hack - is it batching the changes?
-	page.style.transitionProperty = `transform, left, top`;
-	page.style.transitionDuration = `0s`;
+	pageElement.style.transitionProperty = `transform, left, top`;
+	pageElement.style.transitionDuration = `0s`;
 
 	if (shouldDisableControl) {
 		disableControl();
@@ -178,7 +166,7 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 	}
 }
 
-function applyScale(scaleBy, x_container, y_container) {
+function applyScale(scaleBy, x_scroBoxElement, y_scroBoxElement) {
 	if (scaleBy == null) {
 		console.warn(`Missing scaleBy parameter`);
 		return;
@@ -190,32 +178,32 @@ function applyScale(scaleBy, x_container, y_container) {
 		// clamp v to scroll range
 		// this limits minScale to 1
 		v = Math.min(v, 0);
-		v = Math.max(v, -container.scrollLeftMax);
+		v = Math.max(v, -scrollBoxElement.scrollLeftMax);
 
 		translationX = v;
 
-		container.scrollLeft = Math.max(-v, 0);
-		ignoredScrollLeft = container.scrollLeft;
+		scrollBoxElement.scrollLeft = Math.max(-v, 0);
+		ignoredScrollLeft = scrollBoxElement.scrollLeft;
 
 		// scroll-transform what we're unable to apply
 		// either there is no scroll-bar or we want to scroll past the end
-		overflowTranslationX = v < 0 ? Math.max((-v) - container.scrollLeftMax, 0) : 0;
+		overflowTranslationX = v < 0 ? Math.max((-v) - scrollBoxElement.scrollLeftMax, 0) : 0;
 	}
 	function setTranslationY(v) {
 		// clamp v to scroll range
 		// this limits minScale to 1
 		v = Math.min(v, 0);
-		v = Math.max(v, -container.scrollTopMax);
+		v = Math.max(v, -scrollBoxElement.scrollTopMax);
 
 		translationY = v;
 
-		container.scrollTop = Math.max(-v, 0);
-		ignoredScrollTop = container.scrollTop;
+		scrollBoxElement.scrollTop = Math.max(-v, 0);
+		ignoredScrollTop = scrollBoxElement.scrollTop;
 
-		overflowTranslationY = v < 0 ? Math.max((-v) - container.scrollTopMax, 0) : 0;
+		overflowTranslationY = v < 0 ? Math.max((-v) - scrollBoxElement.scrollTopMax, 0) : 0;
 	}
 
-	// resize page
+	// resize pageElement
 	let pageScaleBefore = pageScale;
 	pageScale *= scaleBy;
 	pageScale = Math.min(Math.max(pageScale, minScale), maxScale);
@@ -226,11 +214,10 @@ function applyScale(scaleBy, x_container, y_container) {
 
 	updateTransform();
 
-	// what space is tx given in?
-	let zx = x_container;
-	let zy = y_container;
+	let zx = x_scroBoxElement;
+	let zy = y_scroBoxElement;
 
-	// calculate new x-translation
+	// calculate new xy-translation
 	let tx = getTranslationX();
 	tx = (tx - zx) * (effectiveScale) + zx;
 
@@ -242,4 +229,29 @@ function applyScale(scaleBy, x_container, y_container) {
 	setTranslationY(ty);
 
 	updateTransform();
+}
+
+function resetScale() {
+	// reset state
+	pageScale = 1;
+	translationX = 0;
+	translationY = 0;
+	overflowTranslationX = 0;
+	overflowTranslationY = 0;
+
+	let scrollLeftBefore = scrollBoxElement.scrollLeft;
+	let scrollLeftMaxBefore = scrollBoxElement.scrollMax;
+	let scrollTopBefore = scrollBoxElement.scrollTop;
+	let scrollTopMaxBefore = scrollBoxElement.scrollTopMax;
+	updateTransform(0, false);
+
+	// restore scroll
+	scrollBoxElement.scrollLeft = (scrollLeftBefore/scrollLeftMaxBefore) * scrollBoxElement.scrollLeftMax;
+	scrollBoxElement.scrollTop = (scrollTopBefore/scrollTopMaxBefore) * scrollBoxElement.scrollTopMax;
+
+	updateTranslationFromScroll();
+
+	// undo other css changes
+	pageElement.style.overflow = '';
+	document.body.style.pointerEvents = '';
 }
