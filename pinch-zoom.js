@@ -1,6 +1,6 @@
 /**
  # Todo before release
- ! Fix bug with zooming in and out when scroll is at right-most
+ ! Fix google maps willChange causes problems!
  ! Support meta max/min scale
  - Lazy setup, attach listeners and whatnot only when first used
  - Fix broken pages
@@ -27,7 +27,7 @@ let translationY = 0;
 let overflowTranslationX = 0;
 let overflowTranslationY = 0;
 
-page.style.willChange = 'transform';
+// page.style.willChange = 'transform';
 
 // @! debug
 // container.addEventListener(`click`, (e) => {
@@ -191,20 +191,29 @@ function applyScale(scaleBy, x_container, y_container) {
 	function getTranslationX(){ return translationX; }
 	function getTranslationY(){ return translationY; }
 	function setTranslationX(v) {
+		// clamp v to scroll range
+		// this limits minScale to 1
+		v = Math.min(v, 0);
+		v = Math.max(v, -container.scrollLeftMax);
+
 		translationX = v;
 
-		container.scrollLeft = -v;
+		container.scrollLeft = Math.max(-v, 0);
 		ignoredScrollLeft = container.scrollLeft;
 
 		// scroll-transform what we're unable to apply
 		// either there is no scroll-bar or we want to scroll past the end
 		overflowTranslationX = v < 0 ? Math.max((-v) - container.scrollLeftMax, 0) : 0;
-		// console.log(overflowTranslationX);
 	}
 	function setTranslationY(v) {
+		// clamp v to scroll range
+		// this limits minScale to 1
+		v = Math.min(v, 0);
+		v = Math.max(v, -container.scrollTopMax);
+
 		translationY = v;
 
-		container.scrollTop = -v;
+		container.scrollTop = Math.max(-v, 0);
 		ignoredScrollTop = container.scrollTop;
 
 		overflowTranslationY = v < 0 ? Math.max((-v) - container.scrollTopMax, 0) : 0;
