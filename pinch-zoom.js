@@ -1,11 +1,16 @@
-/**
- # Other ideas
- - Lazy setup, attach listeners and whatnot only when first used
- - Potentially even smoother zoom with non-zero transition duration
- 	- This requires decoupling translation from scroll
- 	- Which means we have to have a convert-to-scroll method when the transition is complete
-
- **/
+// view scaling parameters and other options
+const zoomSpeed = 0.015;
+const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
+const shiftKeyZoom = true;// enable zoom with shift + scroll
+const minScale = 1.0;
+const maxScale = 10;
+const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
+// state
+let pageScale = 1;
+let translationX = 0;
+let translationY = 0;
+let overflowTranslationX = 0;
+let overflowTranslationY = 0;
 
 // elements
 let pageElement = document.documentElement;
@@ -13,7 +18,7 @@ let scrollBoxElement = document.documentElement; // this is the scroll-box
 let wheelEventElement = document.documentElement;
 let scrollEventElement = window;
 
-let quirksMode = document.compatMode === 'BackCompat';
+const quirksMode = document.compatMode === 'BackCompat';
 
 // if the pageElement is missing a doctype or the doctype is set to < HTML 4.01 then Firefox renders in quirks mode
 // we cannot use the scroll fields on the <html> element, instead we must use the body
@@ -21,19 +26,6 @@ let quirksMode = document.compatMode === 'BackCompat';
 if (quirksMode) {
 	scrollBoxElement = document.body;
 }
-
-// view scaling parameters and other options
-const zoomSpeed = 0.015;
-const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
-const shiftKeyZoom = true;// enable zoom with shift + scroll
-const minScale = 1.0;
-const maxScale = 10;
-// state
-let pageScale = 1;
-let translationX = 0;
-let translationY = 0;
-let overflowTranslationX = 0;
-let overflowTranslationY = 0;
 
 // browser-hint optimization - I found this causes issues with some sites like maps.google.com
 // pageElement.style.willChange = 'transform';
@@ -45,9 +37,9 @@ window.addEventListener(`keydown`, updateRealCtrl);
 window.addEventListener(`keyup`, updateRealCtrl);
 window.addEventListener(`mousemove`, updateRealCtrl);
 
-// cmd + 0 to restore zoom
+// cmd + 0 or ctrl + 0 to restore zoom
 window.addEventListener('keydown', (e) => {
-	if (e.key == '0' && e.metaKey) {
+	if (e.key == '0' && (isMac ? e.metaKey : e.ctrlKey)) {
 		resetScale();
 	}
 });
