@@ -1,6 +1,6 @@
 # Smooth Multi-Touch Zoom Add-on for Firefox
 
-![zoom-compressed](/Users/geo/Projects/firefox-real-pinch-zoom/zoom-compressed.gif)
+![zoom-compressed](zoom-compressed.gif?raw=true)
 
 This extension adds support for smooth zooming with the pinch gesture on a trackpad or touch screen. It's been designed to match the behavior of Chrome and Safari.
 
