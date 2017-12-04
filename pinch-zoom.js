@@ -166,11 +166,10 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 	}
 }
 
-function applyScale(scaleBy, x_scroBoxElement, y_scroBoxElement) {
-	if (scaleBy == null) {
-		console.warn(`Missing scaleBy parameter`);
-		return;
-	}
+function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
+	// x/y coordinates in untransformed coordinates relative to the scroll container
+	// if the container is the window, then the coordinates are relative to the window
+	// ignoring any scroll offset. The coordinates do not change as the page is transformed
 
 	function getTranslationX(){ return translationX; }
 	function getTranslationY(){ return translationY; }
@@ -214,8 +213,8 @@ function applyScale(scaleBy, x_scroBoxElement, y_scroBoxElement) {
 
 	updateTransform();
 
-	let zx = x_scroBoxElement;
-	let zy = y_scroBoxElement;
+	let zx = x_scrollBoxElement;
+	let zy = y_scrollBoxElement;
 
 	// calculate new xy-translation
 	let tx = getTranslationX();
@@ -253,5 +252,5 @@ function resetScale() {
 
 	// undo other css changes
 	pageElement.style.overflow = '';
-	document.body.style.pointerEvents = '';
+	// document.body.style.pointerEvents = '';
 }
