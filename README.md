@@ -10,11 +10,11 @@ Non-multi-touch users can still smooth zoom by scrolling and holding down the *s
 
 Zoom can be reset by pressing *cmd* + *0* on macOS or *ctrl* + *0* on Windows
 
------
+## Motivation
 
 Given we live in a time with Macbook trackpads as big as a tablet, I've become so used to the pinch-to-zoom feature while browsing in Safari and Chrome that its absence was a deal breaker for me when testing the new Firefox Quantum. I put this together to try and bring the feature to Firefox, especially since it's recently [started to fail in Chrome](https://productforums.google.com/forum/#!topic/chrome/r_6hPdd8W5M)
 
-I've only tested it on Macbooks but I expect it will work for surface books and other windows tablets – if you've tried it out please let me know if does!
+I've only tested it on Macbooks but I expect it will work for Surface Books and other Windows tablets – if you've tried it out please let me know if does!
 
 I'm surprised it's not yet a feature of Firefox and that there's no add-ons to enable it in modern Firefox, however it turned out to be tricker than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained some below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
 
