@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Multi-touch Zoom",
-	"version": "0.2",
+	"version": "0.3",
 
 	"description": "Adds smooth multi-touch zoom that matches the behavior in Safai and Chrome",
 
