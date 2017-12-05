@@ -10,7 +10,7 @@
 
 This extension adds support for smooth zooming with the pinch gesture on a trackpad or touch screen. It's been designed to match the behavior of Chrome and Safari.
 
-Non-multi-touch users can still smooth zoom by scrolling and holding down the *SHIFT* or *CTRL* key
+Non-multi-touch users can still smooth zoom by scrolling and holding down the *SHIFT* key
 
 Zoom can be reset by pressing ⌘ and 0 on macOS or CTRL and 0 on Windows
 
