@@ -5,6 +5,11 @@
 
 	"description": "Adds smooth multi-touch zoom that matches the behavior in Safai and Chrome",
 
+	"developer": {
+		"name": "George Corney",
+		"url": "https://github.com/haxiomic"
+	},
+
 	"icons": {
 		"48": "icons/icon-48.png",
 		"96": "icons/icon-96.png",
