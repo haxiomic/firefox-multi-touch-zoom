@@ -2,10 +2,13 @@
 https://developer.mozilla.org/en-US/docs/Web/CSS/zoom
 https://www.w3.org/TR/css-device-adapt-1/#zoom-desc
 
+- Fixed element is mis-positioned
+https://stackoverflow.com/questions/3541863/css-100-width-but-avoid-scrollbar (the join StackOverflow banner at the bottom behaves strangely after zooming (tested on Windows))
+
 - Background image on body
 https://www.watchcartoononline.io/
 
-[INCIDENTALLY FIXED] Zooming in and out of this page = weird
+[INCIDENTALLY FIXED] Zooming in and out of this page = weird clipping issues
 https://www.netmarketshare.com/browser-market-share.aspx
 
 [FIXED] Zoom coordinates are wrong
