@@ -21,7 +21,7 @@ const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0;
 const pinchZoomSpeed = 0.015;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const shiftKeyZoom = true;// enable zoom with shift + scroll
-const shiftKeyZoomSpeed = isMac ? pinchZoomSpeed : 0.025;
+const shiftKeyZoomSpeed = isMac ? pinchZoomSpeed : 0.03;
 const minScale = 1.0;
 const maxScale = 10;
 // state
@@ -108,8 +108,19 @@ scrollBoxElement.addEventListener(`mousedown`, restoreControl);
 
 let controlDisabled = false;
 function disableControl() {
+	if (controlDisabled) return;
+
+	let verticalScrollBarWidth = window.innerWidth - pageElement.clientWidth;
+	let horizontalScrollBarWidth = window.innerHeight - pageElement.clientHeight;
+
 	// disable scrolling for performance
 	pageElement.style.overflow = 'hidden';
+
+	// since we're disabling a scrollbar we need to apply a margin to replicate the offset (if any) it introduced
+	// this prevent the page from being shifted about as the scrollbar is hidden and shown
+	pageElement.style.marginRight = verticalScrollBarWidth + 'px';
+	pageElement.style.marginBottom = horizontalScrollBarWidth + 'px';
+
 	// document.body.style.pointerEvents = 'none';
 	controlDisabled = true;
 }
@@ -118,6 +129,8 @@ function restoreControl() {
 	if (!controlDisabled) return;
 	// scrolling must be enable for panning
 	pageElement.style.overflow = 'scroll';
+	pageElement.style.marginRight = '';
+	pageElement.style.marginBottom = '';
 	// document.body.style.pointerEvents = '';
 	controlDisabled = false;
 }
