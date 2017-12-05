@@ -2,8 +2,13 @@
 https://developer.mozilla.org/en-US/docs/Web/CSS/zoom
 https://www.w3.org/TR/css-device-adapt-1/#zoom-desc
 
-- Background image on body
+- Mis-positioned background image on body (only occurs in certain circumstances)
 https://www.watchcartoononline.io/
+
+- Small scroll-x offset when scaleX(1) is added to the html tag (Firefox bug?)
+https://github.com/haxiomic/firefox-multi-touch-zoom
+
+# Fixed
 
 [INCIDENTALLY FIXED] Zooming in and out of this page = weird
 https://www.netmarketshare.com/browser-market-share.aspx
