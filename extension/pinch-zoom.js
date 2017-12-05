@@ -128,7 +128,7 @@ function disableControl() {
 function restoreControl() {
 	if (!controlDisabled) return;
 	// scrolling must be enable for panning
-	pageElement.style.overflow = 'scroll';
+	pageElement.style.overflow = 'auto';
 	pageElement.style.marginRight = '';
 	pageElement.style.marginBottom = '';
 	// document.body.style.pointerEvents = '';
