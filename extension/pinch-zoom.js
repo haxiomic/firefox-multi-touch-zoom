@@ -12,17 +12,18 @@ Requires Firefox 55 or greater
 Please report issues to the github repository
 	https://github.com/haxiomic/firefox-multi-touch-zoom
 
-And feel free to get in touch via email if you have any questions
+Feel free to get in touch via email if you have any questions
 
 **/
 
 // view scaling parameters and other options
-const zoomSpeed = 0.015;
+const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
+const pinchZoomSpeed = 0.015;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const shiftKeyZoom = true;// enable zoom with shift + scroll
+const shiftKeyZoomSpeed = isMac ? pinchZoomSpeed : 0.025;
 const minScale = 1.0;
 const maxScale = 10;
-const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
 // state
 let pageScale = 1;
 let translationX = 0;
@@ -88,7 +89,9 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 		// x in non-scrolling, non-transformed coordinates relative to the scrollBoxElement
 		// 0 is always the left side and <width> is always the right side
 
-		let newScale = pageScale + e.deltaY * zoomSpeed;
+		let deltaMultiplier = e.shiftKey ? shiftKeyZoomSpeed : pinchZoomSpeed;
+
+		let newScale = pageScale + e.deltaY * deltaMultiplier;
 		let scaleBy = pageScale/newScale;
 
 		applyScale(scaleBy, x, y);
@@ -103,11 +106,6 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 scrollBoxElement.addEventListener(`mousemove`, restoreControl);
 scrollBoxElement.addEventListener(`mousedown`, restoreControl);
 
-let qualityHandle = null;
-let overflowHandle = null;
-
-let _savedOverflow = null;
-let _savedPointerEvents = null;
 let controlDisabled = false;
 function disableControl() {
 	// disable scrolling for performance
@@ -123,6 +121,9 @@ function restoreControl() {
 	// document.body.style.pointerEvents = '';
 	controlDisabled = false;
 }
+
+let qualityTimeoutHandle = null;
+let overflowTimeoutHandle = null;
 
 function updateTransform(scaleModeOverride, shouldDisableControl) {
 	if (shouldDisableControl == null) {
@@ -144,8 +145,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
 		const highQualityWait_ms = 40;
-		window.clearTimeout(qualityHandle);
-		qualityHandle = setTimeout(function(){
+		window.clearTimeout(qualityTimeoutHandle);
+		qualityTimeoutHandle = setTimeout(function(){
 			pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
 		}, highQualityWait_ms);
 	}
@@ -169,8 +170,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 
 	if (shouldDisableControl) {
 		disableControl();
-		clearTimeout(overflowHandle);
-		overflowHandle = setTimeout(function(){
+		clearTimeout(overflowTimeoutHandle);
+		overflowTimeoutHandle = setTimeout(function(){
 			restoreControl();
 		}, 400);
 	}
