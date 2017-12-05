@@ -1,4 +1,4 @@
-# Smooth Multi-Touch Zoom Add-on for Firefox
+# Smooth Multi-Touch Zoom Extension for Firefox
 
 <p align="center">
   <img src="zoom-compressed.gif?raw=true">
@@ -38,7 +38,7 @@ The page can be magnified by setting a CSS scale transform on the root element, 
 
   To achieve the best of both world we can use the perspective trick during the pinch gesture and swap to regular scale functions once the gesture has finished.
 
-- Setting `overflow: hidden` on the root element helps to reduce re-painting: scaling causes the content to overflow and the scroll region to change. Rapidly changing the scroll region seems to trigger a whole bunch of expensive work. Setting overflow to hidden seems to prevent this and fortunately we can still use `scrollLeft` and `scrollTop` to apply an offset to the page, but the scroll bar is hidden and panning is disabled. In this add-on overflow is set to `scroll` as soon as the pinch gesture completes but there's a noticeable delay between zooming and being able to pan whilst the browser does a whole bunch of repainting work. I'm not convinced this work is necessary but I've not yet been able to hint to the browser that it doesn't need to be done.
+- Setting `overflow: hidden` on the root element helps to reduce re-painting: scaling causes the content to overflow and the scroll region to change. Rapidly changing the scroll region seems to trigger a whole bunch of expensive work. Setting overflow to hidden seems to prevent this and fortunately we can still use `scrollLeft` and `scrollTop` to apply an offset to the page, but the scroll bar is hidden and panning is disabled. In this extension overflow is set to `scroll` as soon as the pinch gesture completes but there's a noticeable delay between zooming and being able to pan whilst the browser does a whole bunch of repainting work. I'm not convinced this work is necessary but I've not yet been able to hint to the browser that it doesn't need to be done.
 
 - Enabling CSS transitions on the transform property and setting the duration to 0 seconds seems to help. This one is a bit of voodoo, I'm not convinced it should work but it does seem to. It could potentially be acting as a hint to enable certain rendering optimizations but I'm not sure. Would love to learn more if anyone has ideas.
 
