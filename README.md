@@ -20,7 +20,7 @@ Requires Firefox 55 or greater
 
 ## Motivation
 
-Firefox is still missing smooth multi-touch zoom support, an issue has been sitting in [Bugzilla for the last 5 years](https://bugzilla.mozilla.org/show_bug.cgi?id=789906) gathering comments
+Firefox is still missing smooth multi-touch zoom support, an issue has been sitting in [Bugzilla for the last 6 years](https://bugzilla.mozilla.org/show_bug.cgi?id=688990) gathering comments
 
 Given we live in a time with MacBook trackpads as big as a tablet, I've become so used to the pinch-to-zoom feature while browsing in Safari and Chrome that its absence was a deal breaker for me when trying to switch to the new Firefox Quantum. I put this together to try and bring the feature to Firefox, especially since it's recently [started to develop issues in Chrome](https://productforums.google.com/forum/#!topic/chrome/r_6hPdd8W5M)
 
