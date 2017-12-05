@@ -20,7 +20,7 @@ Given we live in a time with Macbook trackpads as big as a tablet, I've become s
 
 **I've only tested it on Macbooks but I expect it will work for Surface Books and other Windows tablets – if you've tried it out please let me know your experience!**
 
-It turned out to be tricker to implement than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained some below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
+It turned out to be tricker to implement than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained the implementation below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
 
 ## Implementation Details and Hacks
 #### No 'real' multi-touch gesture events in Firefox for Desktop
