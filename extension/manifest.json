@@ -1,11 +1,14 @@
 {
 	"manifest_version": 2,
 	"name": "Multi-touch Zoom",
-	"version": "0.1",
+	"version": "0.2",
 
 	"description": "Adds smooth multi-touch zoom that matches the behavior in Safai and Chrome",
 
-	"icons": {		
+	"icons": {
+		"48": "icons/icon-48.png",
+		"96": "icons/icon-96.png",
+		"192": "icons/icon-192.png"
 	},
 
 	"content_scripts": [

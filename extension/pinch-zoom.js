@@ -1,3 +1,21 @@
+/**
+
+Multi-touch zoom extension for Firefox
+Enables smooth pinch to zoom on desktop
+
+Requires Firefox 55 or greater
+
+@Author: George Corney / haxiomic
+@Website: http://github.com/haxiomic
+@Email: haxiomic@gmail.com
+
+Please report issues to the github repository
+	https://github.com/haxiomic/firefox-multi-touch-zoom
+
+And feel free to get in touch via email if you have any questions
+
+**/
+
 // view scaling parameters and other options
 const zoomSpeed = 0.015;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
