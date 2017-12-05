@@ -6,17 +6,21 @@
 
 This extension adds support for smooth zooming with the pinch gesture on a trackpad or touch screen. It's been designed to match the behavior of Chrome and Safari.
 
-Non-multi-touch users can still smooth zoom by scrolling and holding down the *shift* or *ctrl* key
+Non-multi-touch users can still smooth zoom by scrolling and holding down the *SHIFT* or *CTRL* key
 
-Zoom can be reset by pressing *cmd* + *0* on macOS or *ctrl* + *0* on Windows
+Zoom can be reset by pressing ⌘ and 0 on macOS or CTRL and 0 on Windows
+
+Requires Firefox 55 or greater
 
 ## Motivation
 
-Given we live in a time with Macbook trackpads as big as a tablet, I've become so used to the pinch-to-zoom feature while browsing in Safari and Chrome that its absence was a deal breaker for me when testing the new Firefox Quantum. I put this together to try and bring the feature to Firefox, especially since it's recently [started to fail in Chrome](https://productforums.google.com/forum/#!topic/chrome/r_6hPdd8W5M)
+Firefox is still missing smooth multi-touch zoom support, an issue has been sitting in [Bugzilla for the last 5 years](https://bugzilla.mozilla.org/show_bug.cgi?id=789906&GoAheadAndLogIn=1) gathering comments
 
-I've only tested it on Macbooks but I expect it will work for Surface Books and other Windows tablets – if you've tried it out please let me know if does!
+Given we live in a time with Macbook trackpads as big as a tablet, I've become so used to the pinch-to-zoom feature while browsing in Safari and Chrome that its absence was a deal breaker for me when trying to switch to the new Firefox Quantum. I put this together to try and bring the feature to Firefox, especially since it's recently [started to fail in Chrome](https://productforums.google.com/forum/#!topic/chrome/r_6hPdd8W5M)
 
-I'm surprised it's not yet a feature of Firefox and that there's no add-ons to enable it in modern Firefox, however it turned out to be tricker than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained some below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
+**I've only tested it on Macbooks but I expect it will work for Surface Books and other Windows tablets – if you've tried it out please let me know your experience!**
+
+It turned out to be tricker to implement than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained some below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
 
 ## Implementation Details and Hacks
 #### No 'real' multi-touch gesture events in Firefox for Desktop
