@@ -12,7 +12,7 @@ Requires Firefox 55 or greater
 Please report issues to the github repository
 	https://github.com/haxiomic/firefox-multi-touch-zoom
 
-And feel free to get in touch via email if you have any questions
+Feel free to get in touch via email if you have any questions
 
 **/
 
@@ -106,11 +106,6 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 scrollBoxElement.addEventListener(`mousemove`, restoreControl);
 scrollBoxElement.addEventListener(`mousedown`, restoreControl);
 
-let qualityHandle = null;
-let overflowHandle = null;
-
-let _savedOverflow = null;
-let _savedPointerEvents = null;
 let controlDisabled = false;
 function disableControl() {
 	// disable scrolling for performance
@@ -126,6 +121,9 @@ function restoreControl() {
 	// document.body.style.pointerEvents = '';
 	controlDisabled = false;
 }
+
+let qualityTimeoutHandle = null;
+let overflowTimeoutHandle = null;
 
 function updateTransform(scaleModeOverride, shouldDisableControl) {
 	if (shouldDisableControl == null) {
@@ -147,8 +145,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
 		const highQualityWait_ms = 40;
-		window.clearTimeout(qualityHandle);
-		qualityHandle = setTimeout(function(){
+		window.clearTimeout(qualityTimeoutHandle);
+		qualityTimeoutHandle = setTimeout(function(){
 			pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
 		}, highQualityWait_ms);
 	}
@@ -172,8 +170,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 
 	if (shouldDisableControl) {
 		disableControl();
-		clearTimeout(overflowHandle);
-		overflowHandle = setTimeout(function(){
+		clearTimeout(overflowTimeoutHandle);
+		overflowTimeoutHandle = setTimeout(function(){
 			restoreControl();
 		}, 400);
 	}
