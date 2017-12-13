@@ -27,8 +27,8 @@ Given we live in a time with MacBook trackpads as big as a tablet, I've become s
 It turned out to be tricker to implement than I thought! There are a number of little hacks required to get it to work and to achieve a smooth user experience. I've explained the implementation below and hopefully this could help someone else trying to achieve high-performance scalling with CSS
 
 ## Implementation Details and Hacks
-#### No 'real' multi-touch gesture events in Firefox for Desktop
-In-spite of having PointerEvents, TouchEvents and even a 'MozMagnifyGesture' event, none of these will fire when the user performs multi-touch gestures on a desktop trackpad. However, there's a trick to capturing a pinch action: Since Firefox 55.0 the pinch gesture maps to the 'wheel' event with the `ctrlKey` flag artificially set to true. It's an ugly hack, but it lets us distinguish between *mouse-wheel* + *ctrl* and *pinch* by keeping track of the real `ctrlKey` state and comparing.
+#### No 'real' multi-touch trackpad gesture events in Firefox for Desktop
+In-spite of having PointerEvents, TouchEvents and even a 'MozMagnifyGesture' event, none of these will fire when the user performs multi-touch gestures on a desktop trackpad. However, there's a trick to capturing a pinch action: Since Firefox 55.0 the pinch gesture maps to the 'wheel' event with the `ctrlKey` flag artificially set to true. It's an ugly hack, but it ~~lets us distinguish between *mouse-wheel* + *ctrl* and *pinch* by keeping track of the real `ctrlKey` state and comparing~~ (this is only true on macOS).
 
 We'd really want to capture pinch-start and pinch-end events to enable the best user experience but unfortunately I'm not aware of any technique to enable this.
 
