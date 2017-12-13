@@ -18,10 +18,10 @@ Feel free to get in touch via email if you have any questions
 
 // view scaling parameters and other options
 const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
-const pinchZoomSpeed = 0.015;
+const pinchZoomSpeed = isMac ? 0.015 : 0.03;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const shiftKeyZoom = true;// enable zoom with shift + scroll
-const shiftKeyZoomSpeed = isMac ? pinchZoomSpeed : 0.03;
+const shiftKeyZoomSpeed = pinchZoomSpeed;
 const minScale = 1.0;
 const maxScale = 10;
 // state
@@ -82,7 +82,8 @@ scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
 wheelEventElement.addEventListener(`wheel`, (e) => {
 	// when pinching, Firefox will set the 'ctrlKey' flag to true, even when ctrl is not pressed
 	// we can use this fact to distinguish between scrolling and pinching
-	let firefoxPseudoPinch = e.ctrlKey && !realCtrlDown;
+	// ! it turns out this is only the case on macOS - on Windows, a ctrl key down event seems to be fired right before the wheel event...
+	let firefoxPseudoPinch = e.ctrlKey && (isMac ? !realCtrlDown : true);
 	if (firefoxPseudoPinch || (e.shiftKey && shiftKeyZoom)) {
 		let x = e.clientX - scrollBoxElement.offsetLeft;
 		let y = e.clientY - scrollBoxElement.offsetTop;
