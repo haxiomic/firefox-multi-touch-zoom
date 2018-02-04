@@ -17,13 +17,16 @@ Feel free to get in touch via email if you have any questions
 **/
 
 // view scaling parameters and other options
-const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
+const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0;
 const pinchZoomSpeed = isMac ? 0.015 : 0.03;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const shiftKeyZoom = true;// enable zoom with shift + scroll
 const shiftKeyZoomSpeed = pinchZoomSpeed;
 const minScale = 1.0;
 const maxScale = 10;
+const maxTapDistance = 10;
+const maxTapDuration = 250;
+const maxTapInterval = 300;
 // state
 let pageScale = 1;
 let translationX = 0;
@@ -106,6 +109,62 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 
 scrollBoxElement.addEventListener(`mousemove`, restoreControl);
 scrollBoxElement.addEventListener(`mousedown`, restoreControl);
+
+// stores the most recent taps recorded from mouse click events
+// this would be better if implemented using W3C Touch Events, as we could support double two-finger tap as in macOS,
+// but Firefox desktop does not send them at all even if manually enabling dom.w3c_touch_events as of Firefox 59
+let lastTouchTime = 0;
+let lastTouchX = false;
+let lastTouchY = false;
+let tapCount = 0;
+
+window.addEventListener(`mousedown`, (e) => {
+	if (pageScale == 1) return;
+	if (getTouchInterval() >= maxTapInterval ||
+		getTouchDistance(e.pageX, e.pageY) >= maxTapDistance)
+		tapCount = 0;
+	updateTouchInfo();
+});
+
+window.addEventListener(`mouseup`, (e) => {
+	if (pageScale == 1) return;
+	if (getTouchInterval() >= maxTapDuration ||
+		getTouchDistance(e.pageX, e.pageY) >= maxTapDistance)
+		resetTouchInfo();
+	else {
+		tapCount++;
+		updateTouchInfo();
+		if (tapCount % 2 == 0) {
+			resetScale();
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	}
+	console.log(tapCount);
+});
+
+function getTouchInterval() {
+	let now = new Date().getTime();
+	return now - lastTouchTime;
+}
+function getTouchDistance(currentX, currentY) {
+	let x = lastTouchX - currentX;
+	let y = lastTouchY - currentY;
+	return Math.sqrt(x * x + y * y);
+}
+
+function updateTouchInfo(pageX, pageY) {
+	lastTouchTime = new Date().getTime();
+	lastTouchX = pageX;
+	lastTouchY = pageY;
+}
+
+function resetTouchInfo() {
+	lastTouchTime = 0;
+	lastTouchX = false;
+	lastTouchY = false;
+	tapCount = 0;
+}
 
 let controlDisabled = false;
 function disableControl() {
