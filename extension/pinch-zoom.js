@@ -119,6 +119,7 @@ let lastTouchY = false;
 let tapCount = 0;
 
 window.addEventListener(`mousedown`, (e) => {
+	if (pageScale == 1) return;
 	if (getTouchInterval() >= maxTapInterval ||
 		getTouchDistance(e.pageX, e.pageY) >= maxTapDistance)
 		tapCount = 0;
@@ -126,6 +127,7 @@ window.addEventListener(`mousedown`, (e) => {
 });
 
 window.addEventListener(`mouseup`, (e) => {
+	if (pageScale == 1) return;
 	if (getTouchInterval() >= maxTapDuration ||
 		getTouchDistance(e.pageX, e.pageY) >= maxTapDistance)
 		resetTouchInfo();
