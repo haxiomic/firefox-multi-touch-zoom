@@ -3,7 +3,7 @@
 	"name": "Multi-touch Zoom",
 	"version": "0.5",
 
-	"description": "Adds smooth multi-touch zoom that matches the behavior in Safai and Chrome",
+	"description": "Adds smooth multi-touch zoom that matches the behavior in Safari and Chrome",
 
 	"developer": {
 		"name": "George Corney",
