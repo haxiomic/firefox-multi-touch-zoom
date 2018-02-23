@@ -17,13 +17,14 @@ Feel free to get in touch via email if you have any questions
 **/
 
 // view scaling parameters and other options
-const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0; 
+const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0;
 const pinchZoomSpeed = isMac ? 0.015 : 0.03;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const shiftKeyZoom = true;// enable zoom with shift + scroll
 const shiftKeyZoomSpeed = pinchZoomSpeed;
 const minScale = 1.0;
 const maxScale = 10;
+
 // state
 let pageScale = 1;
 let translationX = 0;
@@ -128,7 +129,7 @@ function disableControl() {
 
 function restoreControl() {
 	if (!controlDisabled) return;
-	// scrolling must be enable for panning
+	// scrolling must be enabled for panning
 	pageElement.style.overflow = 'auto';
 	pageElement.style.marginRight = '';
 	pageElement.style.marginBottom = '';
