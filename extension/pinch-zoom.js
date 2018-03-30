@@ -31,11 +31,13 @@ let translationX = 0;
 let translationY = 0;
 let overflowTranslationX = 0;
 let overflowTranslationY = 0;
+let touchLastCentreDistance = 0;
 
 // elements
 let pageElement = document.documentElement;
 let scrollBoxElement = document.documentElement; // this is the scroll-box
 let wheelEventElement = document.documentElement;
+let touchEventElement = document.documentElement;
 let scrollEventElement = window;
 
 const quirksMode = document.compatMode === 'BackCompat';
@@ -79,6 +81,41 @@ function updateTranslationFromScroll(){
 	}
 }
 scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
+
+
+touchEventElement.addEventListener(`touchmove`, (e) => {
+	let touchInputs = e.touches;
+	if(touchInputs.length >= 2){
+		let touchCentreX = (touchInputs[0].clientX + touchInputs[touchInputs.length - 1].clientX) / 2;
+		let touchCentreY = (touchInputs[0].clientY + touchInputs[touchInputs.length - 1].clientY) / 2;
+
+		let touchCentreDistanceX = Math.max(touchInputs[0].clientX,touchInputs[touchInputs.length - 1].clientX) - touchCentreX;
+		let touchCentreDistanceY = Math.max(touchInputs[0].clientY,touchInputs[touchInputs.length - 1].clientY) - touchCentreY;
+		let touchCentreDistance = Math.sqrt(Math.pow(touchCentreDistanceX, 2) + Math.pow(touchCentreDistanceY, 2));
+
+		let X = touchCentreX - scrollBoxElement.offsetLeft;
+		let Y = touchCentreY - scrollBoxElement.offsetTop;
+
+		let touchScaleFactor = 1;
+		if(touchLastCentreDistance != 0){
+			touchScaleFactor = touchCentreDistance / touchLastCentreDistance;
+		}
+		touchLastCentreDistance = touchCentreDistance;
+		applyScale(touchScaleFactor, X, Y);
+		e.preventDefault();
+		e.stopPropagation();
+	}
+	else{
+		restoreControl();
+	}
+}, false);
+
+function restoreTouchCentre(){
+	touchLastCentreDistance = 0;
+}
+touchEventElement.addEventListener(`touchend`, restoreTouchCentre);
+touchEventElement.addEventListener(`touchstart`, restoreTouchCentre);
+
 
 wheelEventElement.addEventListener(`wheel`, (e) => {
 	// when pinching, Firefox will set the 'ctrlKey' flag to true, even when ctrl is not pressed
