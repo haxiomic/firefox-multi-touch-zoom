@@ -229,9 +229,9 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	if (shouldDisableControl) {
 		disableControl();
 		clearTimeout(overflowTimeoutHandle);
-		overflowTimeoutHandle = setTimeout(function(){
+		requestAnimationFrame((e) => {
 			restoreControl();
-		}, 400);
+		});
 	}
 }
 
