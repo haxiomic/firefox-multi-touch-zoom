@@ -86,23 +86,23 @@ scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
 touchEventElement.addEventListener(`touchmove`, (e) => {
 	let touchInputs = e.touches;
 	if(touchInputs.length >= 2){
-		let touchCentreX = (touchInputs[0].clientX + touchInputs[touchInputs.length - 1].clientX) / 2;
-		let touchCentreY = (touchInputs[0].clientY + touchInputs[touchInputs.length - 1].clientY) / 2;
+		let touchCentreX = (touchInputs[0].clientX + touchInputs[touchInputs.length - 1].clientX) / 2; //gets the x position of the centre point between two inputs
+		let touchCentreY = (touchInputs[0].clientY + touchInputs[touchInputs.length - 1].clientY) / 2; //gets the y position of the centre point between two inputs
 
-		let touchCentreDistanceX = Math.max(touchInputs[0].clientX,touchInputs[touchInputs.length - 1].clientX) - touchCentreX;
-		let touchCentreDistanceY = Math.max(touchInputs[0].clientY,touchInputs[touchInputs.length - 1].clientY) - touchCentreY;
-		let touchCentreDistance = Math.sqrt(Math.pow(touchCentreDistanceX, 2) + Math.pow(touchCentreDistanceY, 2));
+		let touchCentreDistanceX = Math.max(touchInputs[0].clientX,touchInputs[touchInputs.length - 1].clientX) - touchCentreX; //gets the horizontal distance between the input and centre point
+		let touchCentreDistanceY = Math.max(touchInputs[0].clientY,touchInputs[touchInputs.length - 1].clientY) - touchCentreY; //gets the vertical distance between the input and centre point
+		let touchCentreDistance = Math.round(Math.sqrt(Math.pow(touchCentreDistanceX, 2) + Math.pow(touchCentreDistanceY, 2))); //gets the actual distance between between the input and centre point
 
 		let X = touchCentreX - scrollBoxElement.offsetLeft;
 		let Y = touchCentreY - scrollBoxElement.offsetTop;
 
-		let touchScaleFactor = 1;
+		let touchScaleFactor = 1; //Default scale factor
 		if(touchLastCentreDistance != 0){
-			touchScaleFactor = touchCentreDistance / touchLastCentreDistance;
+			touchScaleFactor = touchCentreDistance / touchLastCentreDistance; //gets the new factor, by which the page will be scaled.
 		}
 		touchLastCentreDistance = touchCentreDistance;
 		applyScale(touchScaleFactor, X, Y, true);
-		e.preventDefault();
+		e.preventDefault(); //Prevent default zooming
 		e.stopPropagation();
 	}
 	else{
@@ -111,9 +111,9 @@ touchEventElement.addEventListener(`touchmove`, (e) => {
 }, false);
 
 touchEventElement.addEventListener(`touchend`, (e) => {
-	touchLastCentreDistance = 0;
+	touchLastCentreDistance = 0; //prevents the page from jumping around when fingers are added or removed
 	if(e.touches.length < 2){
-		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`; //high quality render when zooming finished
 	}
 });
 touchEventElement.addEventListener(`touchstart`, (e) => {
@@ -179,7 +179,7 @@ function restoreControl() {
 }
 
 let qualityTimeoutHandle = null;
-let overflowTimeoutHandle = null;
+let overflowRequestHandle = null;
 
 function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	if (shouldDisableControl == null) {
@@ -195,12 +195,13 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 		// perspective (reduced quality but faster)
 		let p = 1; // what's the best value here?
 		let z = p - p/pageScale;
+
 		pageElement.style.transform = `perspective(${p}px) translateZ(${z}px)`;
 
 		// wait a short period before restoring the quality
-		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
+		// we use a timeout for trackpad because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
-		if(touch != true){
+		if(touch != true){ //prevents this from occuring when using touchscreen
 			const highQualityWait_ms = 40;
 			window.clearTimeout(qualityTimeoutHandle);
 			qualityTimeoutHandle = setTimeout(function(){
@@ -228,8 +229,9 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 
 	if (shouldDisableControl) {
 		disableControl();
-		clearTimeout(overflowTimeoutHandle);
-		requestAnimationFrame((e) => {
+		cancelAnimationFrame(overflowRequestHandle); //cancels previous request before implementing new one
+		//uses requestAnimationFrame to prevent glitches with setTimeout
+		overflowRequestHandle = requestAnimationFrame((e) => {
 			restoreControl();
 		});
 	}
