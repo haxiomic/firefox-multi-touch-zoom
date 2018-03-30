@@ -114,6 +114,7 @@ touchEventElement.addEventListener(`touchend`, (e) => {
 	touchLastCentreDistance = 0; //prevents the page from jumping around when fingers are added or removed
 	if(e.touches.length < 2){
 		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`; //high quality render when zooming finished
+		restoreControl(); //restore scrollbars
 	}
 });
 touchEventElement.addEventListener(`touchstart`, (e) => {
@@ -179,7 +180,7 @@ function restoreControl() {
 }
 
 let qualityTimeoutHandle = null;
-let overflowRequestHandle = null;
+let overflowTimeoutHandle = null;
 
 function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	if (shouldDisableControl == null) {
@@ -229,11 +230,12 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 
 	if (shouldDisableControl) {
 		disableControl();
-		cancelAnimationFrame(overflowRequestHandle); //cancels previous request before implementing new one
-		//uses requestAnimationFrame to prevent glitches with setTimeout
-		overflowRequestHandle = requestAnimationFrame((e) => {
-			restoreControl();
-		});
+		if(touch != true){
+			clearTimeout(overflowTimeoutHandle);
+			overflowTimeoutHandle = setTimeout(function(){
+				restoreControl();
+			}, 400);
+		}
 	}
 }
 
