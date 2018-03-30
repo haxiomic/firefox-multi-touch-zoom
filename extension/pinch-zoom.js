@@ -101,7 +101,7 @@ touchEventElement.addEventListener(`touchmove`, (e) => {
 			touchScaleFactor = touchCentreDistance / touchLastCentreDistance;
 		}
 		touchLastCentreDistance = touchCentreDistance;
-		applyScale(touchScaleFactor, X, Y);
+		applyScale(touchScaleFactor, X, Y, true);
 		e.preventDefault();
 		e.stopPropagation();
 	}
@@ -110,11 +110,15 @@ touchEventElement.addEventListener(`touchmove`, (e) => {
 	}
 }, false);
 
-function restoreTouchCentre(){
+touchEventElement.addEventListener(`touchend`, (e) => {
 	touchLastCentreDistance = 0;
-}
-touchEventElement.addEventListener(`touchend`, restoreTouchCentre);
-touchEventElement.addEventListener(`touchstart`, restoreTouchCentre);
+	if(e.touches.length < 2){
+		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+	}
+});
+touchEventElement.addEventListener(`touchstart`, (e) => {
+	touchLastCentreDistance = 0;
+});
 
 
 wheelEventElement.addEventListener(`wheel`, (e) => {
@@ -133,7 +137,7 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 		let newScale = pageScale + e.deltaY * deltaMultiplier;
 		let scaleBy = pageScale/newScale;
 
-		applyScale(scaleBy, x, y);
+		applyScale(scaleBy, x, y, false);
 
 		e.preventDefault();
 		e.stopPropagation();
@@ -177,7 +181,7 @@ function restoreControl() {
 let qualityTimeoutHandle = null;
 let overflowTimeoutHandle = null;
 
-function updateTransform(scaleModeOverride, shouldDisableControl) {
+function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	if (shouldDisableControl == null) {
 		shouldDisableControl = true;
 	}
@@ -196,11 +200,13 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 		// wait a short period before restoring the quality
 		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
-		const highQualityWait_ms = 40;
-		window.clearTimeout(qualityTimeoutHandle);
-		qualityTimeoutHandle = setTimeout(function(){
-			pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
-		}, highQualityWait_ms);
+		if(touch != true){
+			const highQualityWait_ms = 40;
+			window.clearTimeout(qualityTimeoutHandle);
+			qualityTimeoutHandle = setTimeout(function(){
+				pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+			}, highQualityWait_ms);
+		}
 	}
 
 	pageElement.style.transformOrigin = `0 0`;
@@ -229,7 +235,7 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 	}
 }
 
-function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
+function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement, touch) {
 	// x/y coordinates in untransformed coordinates relative to the scroll container
 	// if the container is the window, then the coordinates are relative to the window
 	// ignoring any scroll offset. The coordinates do not change as the page is transformed
@@ -274,7 +280,7 @@ function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
 	// when we hit min/max scale we can early exit
 	if (effectiveScale === 1) return;
 
-	updateTransform();
+	updateTransform(null, null, touch);
 
 	let zx = x_scrollBoxElement;
 	let zy = y_scrollBoxElement;
@@ -290,7 +296,7 @@ function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
 	setTranslationX(tx);
 	setTranslationY(ty);
 
-	updateTransform();
+	updateTransform(null, null, touch);
 }
 
 function resetScale() {
@@ -305,7 +311,7 @@ function resetScale() {
 	let scrollLeftMaxBefore = scrollBoxElement.scrollMax;
 	let scrollTopBefore = scrollBoxElement.scrollTop;
 	let scrollTopMaxBefore = scrollBoxElement.scrollTopMax;
-	updateTransform(0, false);
+	updateTransform(0, false, false);
 
 	// restore scroll
 	scrollBoxElement.scrollLeft = (scrollLeftBefore/scrollLeftMaxBefore) * scrollBoxElement.scrollLeftMax;
