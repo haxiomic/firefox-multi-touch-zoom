@@ -31,7 +31,12 @@ let translationX = 0;
 let translationY = 0;
 let overflowTranslationX = 0;
 let overflowTranslationY = 0;
+
 let touchLastCentreDistance = 0;
+let touchLastCentreX = 0;
+let touchLastCentreY = 0;
+let touchCentreChangeX = 0;
+let touchCentreChangeY = 0;
 
 // elements
 let pageElement = document.documentElement;
@@ -96,6 +101,15 @@ touchEventElement.addEventListener(`touchmove`, (e) => {
 		let X = touchCentreX - scrollBoxElement.offsetLeft;
 		let Y = touchCentreY - scrollBoxElement.offsetTop;
 
+		if(touchLastCentreX == 0 && touchLastCentreY == 0){
+			touchLastCentreX = touchCentreX;
+			touchLastCentreY = touchCentreY;
+		}
+		touchCentreChangeX = touchCentreX - touchLastCentreX;
+		touchCentreChangeY = touchCentreY - touchLastCentreY;
+		touchLastCentreX = touchCentreX;
+		touchLastCentreY = touchCentreY;
+
 		let touchScaleFactor = 1; //Default scale factor
 		if(touchLastCentreDistance != 0){
 			touchScaleFactor = touchCentreDistance / touchLastCentreDistance; //gets the new factor, by which the page will be scaled.
@@ -119,6 +133,10 @@ touchEventElement.addEventListener(`touchend`, (e) => {
 });
 touchEventElement.addEventListener(`touchstart`, (e) => {
 	touchLastCentreDistance = 0;
+	touchCentreChangeX = 0;
+	touchCentreChangeY = 0;
+	touchLastCentreX = 0;
+	touchLastCentreY = 0;
 });
 
 
@@ -210,7 +228,10 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 			}, highQualityWait_ms);
 		}
 	}
-
+	if(touch == true){
+		scrollBoxElement.scrollLeft -= touchCentreChangeX * pageScale;
+		scrollBoxElement.scrollTop -= touchCentreChangeY * pageScale;
+	}
 	pageElement.style.transformOrigin = `0 0`;
 
 	// hack to restore normal behavior that's upset after applying the transform
