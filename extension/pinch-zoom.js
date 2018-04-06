@@ -32,10 +32,17 @@ let translationY = 0;
 let overflowTranslationX = 0;
 let overflowTranslationY = 0;
 
+let touchLastCentreDistance = 0;
+let touchLastCentreX = 0;
+let touchLastCentreY = 0;
+let touchCentreChangeX = 0;
+let touchCentreChangeY = 0;
+
 // elements
 let pageElement = document.documentElement;
 let scrollBoxElement = document.documentElement; // this is the scroll-box
 let wheelEventElement = document.documentElement;
+let touchEventElement = document.documentElement;
 let scrollEventElement = window;
 
 const quirksMode = document.compatMode === 'BackCompat';
@@ -80,6 +87,59 @@ function updateTranslationFromScroll(){
 }
 scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
 
+
+touchEventElement.addEventListener(`touchmove`, (e) => {
+	let touchInputs = e.touches;
+	if(touchInputs.length >= 2){
+		let touchCentreX = (touchInputs[0].clientX + touchInputs[touchInputs.length - 1].clientX) / 2; //gets the x position of the centre point between two inputs
+		let touchCentreY = (touchInputs[0].clientY + touchInputs[touchInputs.length - 1].clientY) / 2; //gets the y position of the centre point between two inputs
+
+		let touchCentreDistanceX = Math.max(touchInputs[0].clientX,touchInputs[touchInputs.length - 1].clientX) - touchCentreX; //gets the horizontal distance between the input and centre point
+		let touchCentreDistanceY = Math.max(touchInputs[0].clientY,touchInputs[touchInputs.length - 1].clientY) - touchCentreY; //gets the vertical distance between the input and centre point
+		let touchCentreDistance = Math.round(Math.sqrt(Math.pow(touchCentreDistanceX, 2) + Math.pow(touchCentreDistanceY, 2))); //gets the actual distance between between the input and centre point
+
+		let X = touchCentreX - scrollBoxElement.offsetLeft;
+		let Y = touchCentreY - scrollBoxElement.offsetTop;
+
+		if(touchLastCentreX == 0 && touchLastCentreY == 0){
+			touchLastCentreX = touchCentreX;
+			touchLastCentreY = touchCentreY;
+		}
+		touchCentreChangeX = touchCentreX - touchLastCentreX;
+		touchCentreChangeY = touchCentreY - touchLastCentreY;
+		touchLastCentreX = touchCentreX;
+		touchLastCentreY = touchCentreY;
+
+		let touchScaleFactor = 1; //Default scale factor
+		if(touchLastCentreDistance != 0){
+			touchScaleFactor = touchCentreDistance / touchLastCentreDistance; //gets the new factor, by which the page will be scaled.
+		}
+		touchLastCentreDistance = touchCentreDistance;
+		applyScale(touchScaleFactor, X, Y, true);
+		e.preventDefault(); //Prevent default zooming
+		e.stopPropagation();
+	}
+	else{
+		restoreControl();
+	}
+}, false);
+
+touchEventElement.addEventListener(`touchend`, (e) => {
+	touchLastCentreDistance = 0; //prevents the page from jumping around when fingers are added or removed
+	if(e.touches.length < 2){
+		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`; //high quality render when zooming finished
+		restoreControl(); //restore scrollbars
+	}
+});
+touchEventElement.addEventListener(`touchstart`, (e) => {
+	touchLastCentreDistance = 0;
+	touchCentreChangeX = 0;
+	touchCentreChangeY = 0;
+	touchLastCentreX = 0;
+	touchLastCentreY = 0;
+});
+
+
 wheelEventElement.addEventListener(`wheel`, (e) => {
 	// when pinching, Firefox will set the 'ctrlKey' flag to true, even when ctrl is not pressed
 	// we can use this fact to distinguish between scrolling and pinching
@@ -96,7 +156,7 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 		let newScale = pageScale + e.deltaY * deltaMultiplier;
 		let scaleBy = pageScale/newScale;
 
-		applyScale(scaleBy, x, y);
+		applyScale(scaleBy, x, y, false);
 
 		e.preventDefault();
 		e.stopPropagation();
@@ -140,7 +200,7 @@ function restoreControl() {
 let qualityTimeoutHandle = null;
 let overflowTimeoutHandle = null;
 
-function updateTransform(scaleModeOverride, shouldDisableControl) {
+function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	if (shouldDisableControl == null) {
 		shouldDisableControl = true;
 	}
@@ -154,18 +214,24 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 		// perspective (reduced quality but faster)
 		let p = 1; // what's the best value here?
 		let z = p - p/pageScale;
+
 		pageElement.style.transform = `perspective(${p}px) translateZ(${z}px)`;
 
 		// wait a short period before restoring the quality
-		// we use a timeout because we can't detect when the user has finished the gesture on the hardware
+		// we use a timeout for trackpad because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
-		const highQualityWait_ms = 40;
-		window.clearTimeout(qualityTimeoutHandle);
-		qualityTimeoutHandle = setTimeout(function(){
-			pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
-		}, highQualityWait_ms);
+		if(touch != true){ //prevents this from occuring when using touchscreen
+			const highQualityWait_ms = 40;
+			window.clearTimeout(qualityTimeoutHandle);
+			qualityTimeoutHandle = setTimeout(function(){
+				pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+			}, highQualityWait_ms);
+		}
 	}
-
+	if(touch == true){
+		scrollBoxElement.scrollLeft -= touchCentreChangeX * pageScale;
+		scrollBoxElement.scrollTop -= touchCentreChangeY * pageScale;
+	}
 	pageElement.style.transformOrigin = `0 0`;
 
 	// hack to restore normal behavior that's upset after applying the transform
@@ -185,14 +251,16 @@ function updateTransform(scaleModeOverride, shouldDisableControl) {
 
 	if (shouldDisableControl) {
 		disableControl();
-		clearTimeout(overflowTimeoutHandle);
-		overflowTimeoutHandle = setTimeout(function(){
-			restoreControl();
-		}, 400);
+		if(touch != true){
+			clearTimeout(overflowTimeoutHandle);
+			overflowTimeoutHandle = setTimeout(function(){
+				restoreControl();
+			}, 400);
+		}
 	}
 }
 
-function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
+function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement, touch) {
 	// x/y coordinates in untransformed coordinates relative to the scroll container
 	// if the container is the window, then the coordinates are relative to the window
 	// ignoring any scroll offset. The coordinates do not change as the page is transformed
@@ -237,7 +305,7 @@ function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
 	// when we hit min/max scale we can early exit
 	if (effectiveScale === 1) return;
 
-	updateTransform();
+	updateTransform(null, null, touch);
 
 	let zx = x_scrollBoxElement;
 	let zy = y_scrollBoxElement;
@@ -253,7 +321,7 @@ function applyScale(scaleBy, x_scrollBoxElement, y_scrollBoxElement) {
 	setTranslationX(tx);
 	setTranslationY(ty);
 
-	updateTransform();
+	updateTransform(null, null, touch);
 }
 
 function resetScale() {
@@ -268,7 +336,7 @@ function resetScale() {
 	let scrollLeftMaxBefore = scrollBoxElement.scrollMax;
 	let scrollTopBefore = scrollBoxElement.scrollTop;
 	let scrollTopMaxBefore = scrollBoxElement.scrollTopMax;
-	updateTransform(0, false);
+	updateTransform(0, false, false);
 
 	// restore scroll
 	scrollBoxElement.scrollLeft = (scrollLeftBefore/scrollLeftMaxBefore) * scrollBoxElement.scrollLeftMax;
