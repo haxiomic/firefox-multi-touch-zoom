@@ -2,6 +2,12 @@
 	"manifest_version": 2,
 	"name": "Multi-touch Zoom",
 	"version": "0.6",
+	"applications": {
+		"gecko": {
+			"id": "multitouchzoom@example.org",
+			"strict_min_version": "55.0"
+		}
+	},
 
 	"description": "Adds smooth multi-touch zoom that matches the behavior in Safari and Chrome",
 
@@ -16,11 +22,18 @@
 		"192": "icons/icon-192.png"
 	},
 
-	"content_scripts": [
-		{
-			"matches": ["<all_urls>"],
-			"js": ["pinch-zoom.js"],
-			"run_at": "document_start"
-		}
-	]
+	"content_scripts": [{
+		"matches": ["<all_urls>"],
+		"js": ["pinch-zoom.js"],
+		"run_at": "document_start"
+	}],
+
+	"permissions": [
+		"storage"
+	],
+
+	"options_ui": {
+		"page": "settings.html",
+		"browser_style": true
+	}
 }

@@ -20,7 +20,10 @@ Feel free to get in touch via email if you have any questions
 const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0;
 const pinchZoomSpeed = isMac ? 0.015 : 0.03;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
-const shiftKeyZoom = true;// enable zoom with shift + scroll
+var shiftKeyZoom = true; // enable zoom with shift + scroll by default
+browser.storage.sync.get('mtzoom_shiftkey', function (res) {
+	shiftKeyZoom = res.mtzoom_shiftkey || true;
+});
 const shiftKeyZoomSpeed = pinchZoomSpeed;
 const minScale = 1.0;
 const maxScale = 10;
