@@ -139,8 +139,9 @@ touchEventElement.addEventListener(`touchmove`, (e) => {
 touchEventElement.addEventListener(`touchend`, (e) => {
 	touchLastCentreDistance = 0; //prevents the page from jumping around when fingers are added or removed
 	if(e.touches.length < 2){
-		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`; //high quality render when zooming finished
-		restoreControl(); //restore scrollbars
+		// high quality render when zooming finished
+		pageElement.style.setProperty('transform', `scaleX(${pageScale}) scaleY(${pageScale})`, 'important');
+		restoreControl(); // restore scrollbars
 	}
 });
 touchEventElement.addEventListener(`touchstart`, (e) => {
@@ -188,12 +189,12 @@ function disableControl() {
 	let horizontalScrollBarWidth = window.innerHeight - pageElement.clientHeight;
 
 	// disable scrolling for performance
-	pageElement.style.overflow = 'hidden';
+	pageElement.style.setProperty('overflow', 'hidden', 'important');
 
 	// since we're disabling a scrollbar we need to apply a margin to replicate the offset (if any) it introduced
 	// this prevent the page from being shifted about as the scrollbar is hidden and shown
-	pageElement.style.marginRight = verticalScrollBarWidth + 'px';
-	pageElement.style.marginBottom = horizontalScrollBarWidth + 'px';
+	pageElement.style.setProperty('margin-right', verticalScrollBarWidth + 'px', 'important');
+	pageElement.style.setProperty('margin-bottom', horizontalScrollBarWidth + 'px', 'important');
 
 	// document.body.style.pointerEvents = 'none';
 	controlDisabled = true;
@@ -221,13 +222,13 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 
 	if (sm === 0) {
 		// scaleX/scaleY
-		pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+		pageElement.style.setProperty('transform', `scaleX(${pageScale}) scaleY(${pageScale})`, 'important');
 	} else {
 		// perspective (reduced quality but faster)
 		let p = 1; // what's the best value here?
 		let z = p - p/pageScale;
 
-		pageElement.style.transform = `perspective(${p}px) translateZ(${z}px)`;
+		pageElement.style.setProperty('transform', `perspective(${p}px) translateZ(${z}px)`, 'important');
 
 		// wait a short period before restoring the quality
 		// we use a timeout for trackpad because we can't detect when the user has finished the gesture on the hardware
@@ -236,7 +237,7 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 			const highQualityWait_ms = 40;
 			window.clearTimeout(qualityTimeoutHandle);
 			qualityTimeoutHandle = setTimeout(function(){
-				pageElement.style.transform = `scaleX(${pageScale}) scaleY(${pageScale})`;
+				pageElement.style.setProperty('transform', `scaleX(${pageScale}) scaleY(${pageScale})`, 'important');
 			}, highQualityWait_ms);
 		}
 	}
@@ -244,7 +245,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 		scrollBoxElement.scrollLeft -= touchCentreChangeX * pageScale;
 		scrollBoxElement.scrollTop -= touchCentreChangeY * pageScale;
 	}
-	pageElement.style.transformOrigin = `0 0`;
+
+	pageElement.style.setProperty('transform-origin', '0 0', 'important');
 
 	// hack to restore normal behavior that's upset after applying the transform
 	pageElement.style.position = `relative`;
@@ -253,8 +255,8 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 	// when translation is positive, the offset is applied via left/top positioning
 	// negative translation is applied via scroll
 	if (minScale < 1) {
-		pageElement.style.left = `${Math.max(translationX, 0) - overflowTranslationX}px`;
-		pageElement.style.top = `${Math.max(translationY, 0) - overflowTranslationY}px`;
+		pageElement.style.setProperty('left', `${Math.max(translationX, 0) - overflowTranslationX}px`, 'important');
+		pageElement.style.setProperty('top', `${Math.max(translationY, 0) - overflowTranslationY}px`, 'important');
 	}
 
 	// weird performance hack - is it batching the changes?
