@@ -18,17 +18,14 @@ Feel free to get in touch via email if you have any questions
 
 // view scaling parameters and other options
 const isMac = navigator.platform.toLowerCase().indexOf('mac') >= 0;
-const pinchZoomSpeed = isMac ? 0.015 : 0.03;
 const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
-var shiftKeyZoom = true; // enable zoom with shift + scroll by default
-browser.storage.sync.get('mtzoom_shiftkey', function (res) {
-	if (typeof res.mtzoom_shiftkey !== 'undefined') {
-		shiftKeyZoom = res.mtzoom_shiftkey;
-	}
-});
-const shiftKeyZoomSpeed = pinchZoomSpeed;
 const minScale = 1.0;
 const maxScale = 10;
+const zoomSpeedMultiplier = (isMac ? 0.015 : 0.03) / 5;
+
+// settings
+let shiftKeyZoom = true; // enable zoom with shift + scroll by default
+let pinchZoomSpeed = 5;
 
 // state
 let pageScale = 1;
@@ -58,6 +55,16 @@ const quirksMode = document.compatMode === 'BackCompat';
 if (quirksMode) {
 	scrollBoxElement = document.body;
 }
+
+// apply user settings
+browser.storage.sync.get(['mtzoom_shiftkey', 'mtzoom_speed'], function (res) {
+	if (res.mtzoom_shiftkey != null) {
+		shiftKeyZoom = res.mtzoom_shiftkey;
+	}
+	if (res.mtzoom_speed != null) {
+		pinchZoomSpeed = res.mtzoom_speed;
+	}
+});
 
 // browser-hint optimization - I found this causes issues with some sites like maps.google.com
 // pageElement.style.willChange = 'transform';
@@ -156,7 +163,7 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 		// x in non-scrolling, non-transformed coordinates relative to the scrollBoxElement
 		// 0 is always the left side and <width> is always the right side
 
-		let deltaMultiplier = e.shiftKey ? shiftKeyZoomSpeed : pinchZoomSpeed;
+		let deltaMultiplier = pinchZoomSpeed * zoomSpeedMultiplier;
 
 		let newScale = pageScale + e.deltaY * deltaMultiplier;
 		let scaleBy = pageScale/newScale;
