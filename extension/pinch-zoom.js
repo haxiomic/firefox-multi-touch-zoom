@@ -22,10 +22,14 @@ const scaleMode = 1; // 0 = always high quality, 1 = low-quality while zooming
 const minScale = 1.0;
 const maxScale = 10;
 const zoomSpeedMultiplier = (isMac ? 0.015 : 0.03) / 5;
+const overflowTimeout_ms = 400;
+const highQualityWait_ms = 40;
+const alwaysHighQuality = false;
 
 // settings
 let shiftKeyZoom = true; // enable zoom with shift + scroll by default
 let pinchZoomSpeed = 5;
+let disableScrollbarsWhenZooming = true;
 
 // state
 let pageScale = 1;
@@ -57,12 +61,19 @@ if (quirksMode) {
 }
 
 // apply user settings
-browser.storage.sync.get(['mtzoom_shiftkey', 'mtzoom_speed'], function (res) {
+browser.storage.sync.get([
+	'mtzoom_shiftkey',
+	'mtzoom_speed',
+	'mtzoom_disableScrollbarsWhenZooming',
+], function (res) {
 	if (res.mtzoom_shiftkey != null) {
 		shiftKeyZoom = res.mtzoom_shiftkey;
 	}
 	if (res.mtzoom_speed != null) {
 		pinchZoomSpeed = res.mtzoom_speed;
+	}
+	if (res.mtzoom_disableScrollbarsWhenZooming != null) {
+		disableScrollbarsWhenZooming = res.mtzoom_disableScrollbarsWhenZooming;
 	}
 });
 
@@ -174,6 +185,7 @@ wheelEventElement.addEventListener(`wheel`, (e) => {
 		e.preventDefault();
 		e.stopPropagation();
 	} else {
+		// e.preventDefault();
 		restoreControl();
 	}
 }, false);
@@ -185,16 +197,18 @@ let controlDisabled = false;
 function disableControl() {
 	if (controlDisabled) return;
 
-	let verticalScrollBarWidth = window.innerWidth - pageElement.clientWidth;
-	let horizontalScrollBarWidth = window.innerHeight - pageElement.clientHeight;
+	if (disableScrollbarsWhenZooming) {
+		let verticalScrollBarWidth = window.innerWidth - pageElement.clientWidth;
+		let horizontalScrollBarWidth = window.innerHeight - pageElement.clientHeight;
 
-	// disable scrolling for performance
-	pageElement.style.setProperty('overflow', 'hidden', 'important');
+		// disable scrolling for performance
+		pageElement.style.setProperty('overflow', 'hidden', 'important');
 
-	// since we're disabling a scrollbar we need to apply a margin to replicate the offset (if any) it introduced
-	// this prevent the page from being shifted about as the scrollbar is hidden and shown
-	pageElement.style.setProperty('margin-right', verticalScrollBarWidth + 'px', 'important');
-	pageElement.style.setProperty('margin-bottom', horizontalScrollBarWidth + 'px', 'important');
+		// since we're disabling a scrollbar we need to apply a margin to replicate the offset (if any) it introduced
+		// this prevent the page from being shifted about as the scrollbar is hidden and shown
+		pageElement.style.setProperty('margin-right', verticalScrollBarWidth + 'px', 'important');
+		pageElement.style.setProperty('margin-bottom', horizontalScrollBarWidth + 'px', 'important');
+	}
 
 	// document.body.style.pointerEvents = 'none';
 	controlDisabled = true;
@@ -220,7 +234,7 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 
 	let sm = scaleModeOverride == null ? scaleMode : scaleModeOverride;
 
-	if (sm === 0) {
+	if (sm === 0 || alwaysHighQuality) {
 		// scaleX/scaleY
 		pageElement.style.setProperty('transform', `scaleX(${pageScale}) scaleY(${pageScale})`, 'important');
 	} else {
@@ -234,7 +248,6 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 		// we use a timeout for trackpad because we can't detect when the user has finished the gesture on the hardware
 		// we can only detect gesture update events ('wheel' + ctrl)
 		if(touch != true){ //prevents this from occuring when using touchscreen
-			const highQualityWait_ms = 40;
 			window.clearTimeout(qualityTimeoutHandle);
 			qualityTimeoutHandle = setTimeout(function(){
 				pageElement.style.setProperty('transform', `scaleX(${pageScale}) scaleY(${pageScale})`, 'important');
@@ -269,7 +282,7 @@ function updateTransform(scaleModeOverride, shouldDisableControl, touch) {
 			clearTimeout(overflowTimeoutHandle);
 			overflowTimeoutHandle = setTimeout(function(){
 				restoreControl();
-			}, 400);
+			}, overflowTimeout_ms);
 		}
 	}
 }

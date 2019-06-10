@@ -4,18 +4,30 @@
 	<head>
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
+		<style>
+			label {
+				font-weight: bold;
+			}
+		</style>
 	</head>
 
 <body>
 	<form>
-		<div>
+		<p>
 			<label>Enable SHIFT+scroll</label>
 			<input type="checkbox" id="mtzoom_shiftkey">
-		</div>
-		<div>
-			<lable>Zoom Speed</lable>
+		</p>
+		<p>
+			<div>
+				<label>Disable scrollbars when zooming</label>
+				<input type="checkbox" id="mtzoom_disableScrollbarsWhenZooming">
+			</div>
+			<i>Performance optimization for older versions of Firefox</i>
+		</p>
+		<p>
+			<label>Zoom Speed</label>
 			<input type="range" id="mtzoom_speed" min="0" max="10" step="1">
-		</div>
+		</p>
 	</form>
 	<script src="settings.js"></script>
 </body>
