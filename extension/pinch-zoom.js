@@ -61,7 +61,7 @@ if (quirksMode) {
 }
 
 // apply user settings
-browser.storage.sync.get([
+browser.storage.local.get([
 	'mtzoom_shiftkey',
 	'mtzoom_speed',
 	'mtzoom_disableScrollbarsWhenZooming',

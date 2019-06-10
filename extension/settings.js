@@ -1,5 +1,7 @@
+let storageArea = browser.storage.local;
+
 function restoreOptions() {
-  var gettingItem = browser.storage.sync.get([
+  var gettingItem = storageArea.get([
   	'mtzoom_shiftkey',
   	'mtzoom_speed',
   	'mtzoom_disableScrollbarsWhenZooming',
@@ -14,13 +16,13 @@ function restoreOptions() {
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
 document.getElementById('mtzoom_shiftkey').addEventListener('change', function (event) {
-  browser.storage.sync.set({ "mtzoom_shiftkey": event.target.checked });
+  storageArea.set({ "mtzoom_shiftkey": event.target.checked });
 });
 
 document.getElementById('mtzoom_speed').addEventListener('change', function (event) {
-  browser.storage.sync.set({ "mtzoom_speed": parseFloat(event.target.value) });
+  storageArea.set({ "mtzoom_speed": parseFloat(event.target.value) });
 });
 
 document.getElementById('mtzoom_disableScrollbarsWhenZooming').addEventListener('change', function (event) {
-  browser.storage.sync.set({ "mtzoom_disableScrollbarsWhenZooming": event.target.checked });
+  storageArea.set({ "mtzoom_disableScrollbarsWhenZooming": event.target.checked });
 });

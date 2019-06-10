@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Multi-touch Zoom",
-	"version": "0.9",
+	"version": "0.95",
 	"applications": {
 		"gecko": {
 			"id": "{90b5a72e-cdbd-49df-8304-5b5d6ea84a0f}",
