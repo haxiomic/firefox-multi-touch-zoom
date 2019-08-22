@@ -29,7 +29,7 @@ const alwaysHighQuality = false;
 // settings
 let shiftKeyZoom = true; // enable zoom with shift + scroll by default
 let pinchZoomSpeed = 5;
-let disableScrollbarsWhenZooming = true;
+let disableScrollbarsWhenZooming = false;
 
 // state
 let pageScale = 1;

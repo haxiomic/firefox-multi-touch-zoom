@@ -9,7 +9,7 @@ function restoreOptions() {
   gettingItem.then((res) => {
     document.getElementById('mtzoom_shiftkey').checked = res.mtzoom_shiftkey != null ? res.mtzoom_shiftkey : true;
     document.getElementById('mtzoom_speed').value = res.mtzoom_speed != null ? res.mtzoom_speed : 5;
-    document.getElementById('mtzoom_disableScrollbarsWhenZooming').checked = res.mtzoom_disableScrollbarsWhenZooming != null ? res.mtzoom_disableScrollbarsWhenZooming : true;
+    document.getElementById('mtzoom_disableScrollbarsWhenZooming').checked = res.mtzoom_disableScrollbarsWhenZooming != null ? res.mtzoom_disableScrollbarsWhenZooming : false;
   });
 }
 
