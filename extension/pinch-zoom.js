@@ -112,6 +112,8 @@ scrollEventElement.addEventListener(`scroll`, updateTranslationFromScroll);
 
 
 touchEventElement.addEventListener(`touchmove`, (e) => {
+	if (e.defaultPrevented) return;
+	
 	let touchInputs = e.touches;
 	if(touchInputs.length >= 2){
 		let touchCentreX = (touchInputs[0].clientX + touchInputs[touchInputs.length - 1].clientX) / 2; //gets the x position of the centre point between two inputs
@@ -165,6 +167,8 @@ touchEventElement.addEventListener(`touchstart`, (e) => {
 
 
 wheelEventElement.addEventListener(`wheel`, (e) => {
+	if (e.defaultPrevented) return;
+
 	// when pinching, Firefox will set the 'ctrlKey' flag to true, even when ctrl is not pressed
 	// we can use this fact to distinguish between scrolling and pinching
 	// ! it turns out this is only the case on macOS - on Windows, a ctrl key down event seems to be fired right before the wheel event...
