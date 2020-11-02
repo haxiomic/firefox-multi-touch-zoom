@@ -8,6 +8,8 @@
   <h1 align="center"><a href="https://addons.mozilla.org/en-GB/firefox/addon/multi-touch-zoom/">Add to Firefox</a></h1>
 </p>
 
+<b align="center">Update 2020: This feature is arriving natively in firefox! It's expected to be enabled by default in Firefox 83, so this extension will no longer required :)</b>
+
 This extension adds support for smooth zooming with the pinch gesture on a trackpad or touch screen. It's been designed to match the behavior of Chrome and Safari.
 
 Non-multi-touch users can still smooth zoom by scrolling and holding down the **Shift** key
